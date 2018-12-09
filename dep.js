@@ -55,7 +55,6 @@ function serializeCondBoth(c, params, result) {
     ]).then(function (u) {
       return u[0].one === 'Leanne Graham' &&
              u[1].two === 'Leanne Graham' ?
-
         Promise.all([ // dependencies
           serializeOne(c, params, result),
           serializeTwo(c, params, result)
@@ -125,43 +124,45 @@ function ValidationError(message, result) {
 }
 
 function parseValidationResults(results) {
-  var hasError = false;
+  var _hasError = false;
   var result = results.reduce(function (p, c) {
     return Object.keys(c).filter(function (k) {
-      if(c[k]) return hasError = true;
+      if(c[k]) return _hasError = true;
     }).length ? Object.assign(p, c) : p;
   }, {});
 
-  if(hasError) {
-    throw new ValidationError('Invalid User', result);
-  } else {
-    return {};
-  }
+  return Object.assign(result, { 
+    _hasError: _hasError
+  });
 }
 
 function validateUsers(c, params) {
   var result = {};
   return Promise.all([
-    { sync: undefined }
-/*
     validateSync(c, params, result),
     validateOne(c, params, result),
     validateTwo(c, params, result),
     validateBoth(c, params, result),
     validateCond(c, params, result),
     validateCondBoth(c, params, result)
-*/
   ]).then(parseValidationResults);
 }
 
+validateUsers({}, {})
+  .then(function (r) {
+     console.log(r);   
+   });
 
 function createUsers(c, params) {
-  return serializeUsers({}, {})
-    .then(function (r) {
-      return validateUsers({}, {})
-        .then(function () {
-          return axios.post('someendpoint', r);
-        });
+  validateUsers(c.params)
+    .then(function (result) {
+      if(result._hasError) {
+        throw new ValidationError('Invalid User', result);
+      }
+      return serializeUsers(c, params);
+    }).then(function (r) {
+      return c.db.collection('user')
+        .insertOne(model.user(r));
     });
 }
 
