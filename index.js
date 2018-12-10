@@ -16,12 +16,16 @@ function parseValidationResults(results) {
     return Object.keys(c).filter(function (k) {
       if(isArray(c[k])) {
         c[k].forEach(function (r) {
-          if (typeof r === 'object' && !r.__success) {
-            return error = true;
+          if (typeof r === 'object') {
+            if(!r.__success) error = true;
           } else if(r) {
-            return error = true;
+            error = true;
           }
-        });  
+        });
+        return true;
+      } else if (typeof c[k] === 'object') {
+        error = !c[k].__success;
+        return true;
       } else if (c[k]) {
         return error = true;
       }
