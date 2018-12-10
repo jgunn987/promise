@@ -19,12 +19,12 @@ var validationError =
 
 var validationSuccessObject = 
   parsers.parseValidationResults([
-    { object: { __success: true } } 
+    { object: { __valid: true } } 
   ]);
 
 var validationErrorObject = 
   parsers.parseValidationResults([
-    { object: { key: 'error', __success: false } } 
+    { object: { key: 'error', __valid: false } } 
   ]);
 
 var validationSuccessArray =
@@ -39,40 +39,53 @@ var validationErrorArray =
 
 var validationSuccessArrayObjects = 
   parsers.parseValidationResults([
-    { array: [{ __success: true }] } 
+    { array: [{ __valid: true }] } 
   ]);
 
 var validationErrorArrayObjects = 
   parsers.parseValidationResults([
-    { array: [{ key: 'error', __success: false }] } 
+    { array: [{ key: 'error', __valid: false }] } 
   ]);
 
 assert.ok(serialized.key === undefined, 
   "Undefined value not filtered");
+
 assert.ok(serialized.value === 'include', 
   "Defined value not in object");
-assert.ok(validationSuccess.__success, 
+
+assert.ok(validationSuccess.__valid, 
   "Successful validation not recognized");
-assert.ok(!validationError.__success, 
+
+assert.ok(!validationError.__valid, 
   "Validation error not recognized");
+
 assert.ok(validationError.error === 'error', 
   "Validation error value not in object");
-assert.ok(validationSuccessObject.__success, 
+
+assert.ok(validationSuccessObject.__valid, 
   "Validation success not recognized on nested object");
-assert.ok(validationSuccessObject.object.__success, 
+
+assert.ok(validationSuccessObject.object.__valid, 
   "Validation success not recognized on nested object");
-assert.ok(!validationErrorObject.__success, 
+
+assert.ok(!validationErrorObject.__valid, 
   "Validation error not recognized on nested object");
-assert.ok("__success" in validationErrorObject.object, 
+
+assert.ok("__valid" in validationErrorObject.object, 
   "Validation error not recognized on nested object");
+
 assert.ok(validationErrorObject.object.key === 'error', 
   "Validation error value not in nested object");
-assert.ok(validationSuccessArray.__success, 
+
+assert.ok(validationSuccessArray.__valid, 
   "Validation success not recognized on array");
-assert.ok(!validationErrorArray.__success, 
+
+assert.ok(!validationErrorArray.__valid, 
   "Validation error not recognized on array");
-assert.ok(validationSuccessArrayObjects.__success, 
+
+assert.ok(validationSuccessArrayObjects.__valid, 
   "Validation success not recognized on array of objects");
-assert.ok(!validationErrorArrayObjects.__success, 
+
+assert.ok(!validationErrorArrayObjects.__valid, 
   "Validation error not recognized on array of objects");
 

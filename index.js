@@ -17,24 +17,23 @@ function parseValidationResults(results) {
       if(isArray(c[k])) {
         c[k].forEach(function (r) {
           if (typeof r === 'object') {
-            if(!r.__success) error = true;
+            if(!r.__valid) error = true;
           } else if(r) {
             error = true;
           }
         });
         return true;
       } else if (typeof c[k] === 'object') {
-        error = !c[k].__success;
+        error = !c[k].__valid;
         return true;
       } else if (c[k]) {
         return error = true;
       }
-      return error;
     }).length ? Object.assign(p, c) : p;
   }, {});
 
   return Object.assign(result, { 
-    __success: !error
+    __valid: !error
   });
 }
 

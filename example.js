@@ -133,17 +133,11 @@ function serializeUsers(c, params) {
   ]).then(parsers.parseSerializationResults);
 }
 
-serializeUsers({}, {
-  array: [1, 2, 3],
-  arrayObjects: [{}, {}, {}]
-}).then(function (r) {
-  console.log(JSON.stringify(r, null, 2));
-});
 
 function validateSync(c, params, result) {
   return result.sync = result.sync || 
-    { sync: isemail.validate(params.email || '') || 
-      'Invalid Email Address' };
+    { sync: isemail.validate(params.email || '') ?
+      undefined : 'Invalid Email Address' };
 }
 
 function validateOne(c, params, result) {
@@ -176,7 +170,7 @@ function validateNestedObject(c, params, result) {
 
   var subResult = {};
   return result.nestedObject = Promise.all([
-    //validateSync(c, params, result),
+    validateSync(c, params, result),
     validateOne(c, params, subResult),
     validateTwo(c, params, subResult),
     validateBoth(c, params, subResult),
@@ -193,8 +187,7 @@ function validateArray(c, params, result) {
 
   return result.array = 
     Promise.all(params.array.map(function (v, i) {
-      return;
-      //return v > 2 ? undefined : 'Greater than two';
+      return v > 2 ? undefined : 'Greater than two';
     })).then(function (r) {
       return { array: r };  
     });
@@ -207,7 +200,7 @@ function validateArrayObjects(c, params, result) {
     Promise.all(params.arrayObjects.map(function (v, i) {
       var subResult = {};
       return Promise.all([
-        //validateSync(c, params, subResult),
+        validateSync(c, params, subResult),
         validateOne(c, params, subResult),
         validateTwo(c, params, subResult),
         validateBoth(c, params, subResult),
@@ -229,7 +222,7 @@ function ValidationError(message, result) {
 function validateUsers(c, params) {
   var result = {};
   return Promise.all([
-    //validateSync(c, params, result),
+    validateSync(c, params, result),
     validateOne(c, params, result),
     validateTwo(c, params, result),
     validateBoth(c, params, result),
@@ -242,16 +235,24 @@ function validateUsers(c, params) {
 }
 
 validateUsers({}, {
+  email: 'jgunn987@gmail.com',
   array: [1, 2, 3],
   arrayObjects: [1, 2, 3]
 }).then(function (r) {
   console.log(JSON.stringify(r, null, 2));
+  
+  serializeUsers({}, {
+    array: [1, 2, 3],
+    arrayObjects: [{}, {}, {}]
+  }).then(function (r) {
+    console.log(JSON.stringify(r, null, 2));
+  });
 });
 
 function createUsers(c, params) {
   validateUsers(c, params)
     .then(function (result) {
-      if(!result.__success) {
+      if(!result.__valid) {
         throw new ValidationError('Invalid User', result);
       }
 
