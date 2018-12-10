@@ -64,6 +64,53 @@ function serializeCondBoth(c, params, result) {
     });
 }
 
+function serializeArray(c, params, result) {
+  if(result.array) return result.array;
+
+  return result.array = 
+    Promise.all(params.array.map(function (v) {
+      return v * v;
+    })).then(function (r) {
+      return { array: r };
+    });
+}
+
+function serializeNestedObject(c, params, result) {
+  if(result.nestedObject) return result.nestedObject;
+
+  var subResult = {};
+  return result.nestedObject = Promise.all([
+    serializeSync(c, params, result),
+    serializeOne(c, params, subResult),
+    serializeTwo(c, params, subResult),
+    serializeBoth(c, params, subResult),
+    serializeCond(c, params, subResult),
+    serializeCondBoth(c, params, subResult)
+  ]).then(parsers.parseSerializationResults)
+    .then(function (r) {
+      return { nestedObject: r };    
+    });
+}
+
+function serializeArrayObjects(c, params, result) {
+  if(result.arrayObjects) return result.arrayObjects;
+  
+  return result.arrayObjects = 
+    Promise.all(params.arrayObjects.map(function (v, i) {
+      var subResult = {};
+      return Promise.all([
+        serializeSync(c, params, subResult),
+        serializeOne(c, params, subResult),
+        serializeTwo(c, params, subResult),
+        serializeBoth(c, params, subResult),
+        serializeCond(c, params, subResult),
+        serializeCondBoth(c, params, subResult)
+      ]).then(parsers.parseSerializationResults);
+    })).then(function(a) {
+      return { arrayObjects: a };
+    });
+}
+
 function SerializationError(message, result) {
   var error = new Error(message);
   error.result = result;
@@ -79,9 +126,19 @@ function serializeUsers(c, params) {
     serializeTwo(c, params, result),
     serializeBoth(c, params, result),
     serializeCond(c, params, result),
-    serializeCondBoth(c, params, result)
+    serializeCondBoth(c, params, result),
+    serializeArray(c, params, result),
+    serializeNestedObject(c, params, result),
+    serializeArrayObjects(c, params, result)
   ]).then(parsers.parseSerializationResults);
 }
+
+serializeUsers({}, {
+  array: [1, 2, 3],
+  arrayObjects: [{}, {}, {}]
+}).then(function (r) {
+  console.log(JSON.stringify(r, null, 2));
+});
 
 function validateSync(c, params, result) {
   return result.sync = result.sync || 
@@ -180,16 +237,16 @@ function validateUsers(c, params) {
     validateNestedObject(c, params, result),
     validateArray(c, params, result),
     validateArrayObjects(c, params, result)
-  ]).then(parsers.parseValidationResults)
+  ]).then(parsers.parseValidationResults);
 }
-
+/*
 validateUsers({}, {
   array: [1, 2, 3],
   arrayObjects: [1, 2, 3]
 }).then(function (r) {
   console.log(JSON.stringify(r, null, 2));
 });
-
+*/
 function createUsers(c, params) {
   validateUsers(c, params)
     .then(function (result) {
