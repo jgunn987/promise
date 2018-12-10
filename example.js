@@ -127,7 +127,6 @@ function validateNestedObject(c, params, result) {
     validateCondBoth(c, params, subResult)
   ]).then(parsers.parseValidationResults)
     .then(function (r) {
-        console.log(r);
       return { nestedObject: r.__success ? undefined : r };    
     });
 }
@@ -137,19 +136,28 @@ function validateArray(c, params, result) {
 
   return result.array = 
     Promise.all(params.array.map(function (v, i) {
+      return v > 2 ? undefined : 'Greater than two';
+    })).then(function (r) {
+      return { array: r };  
+    });
+}
+
+function validateArrayObjects(c, params, result) {
+  if(result.arrayObjects) return result.arrayObjects;
+
+  return result.arrayObjects = 
+    Promise.all(params.arrayObjects.map(function (v, i) {
       var subResult = {};
-      var promises = [];
-      if (i == 1) promises.push(validateSync(c, params, result));
-      promises = promises.concat([
+      return Promise.all([
+        validateSync(c, params, subResult),
         validateOne(c, params, subResult),
         validateTwo(c, params, subResult),
         validateBoth(c, params, subResult),
         validateCond(c, params, subResult),
         validateCondBoth(c, params, subResult)
-      ]);
-      return Promise.all(promises).then(parsers.parseValidationResults)
+      ]).then(parsers.parseValidationResults);
     })).then(function(a) {
-      return { array: a };
+      return { arrayObjects: a };
     });
 }
 
@@ -163,24 +171,23 @@ function ValidationError(message, result) {
 function validateUsers(c, params) {
   var result = {};
   return Promise.all([
-    //validateSync(c, params, result),
+    validateSync(c, params, result),
     validateOne(c, params, result),
     validateTwo(c, params, result),
     validateBoth(c, params, result),
     validateCond(c, params, result),
     validateCondBoth(c, params, result),
     validateNestedObject(c, params, result),
-    validateArray(c, params, result)
+    validateArray(c, params, result),
+    validateArrayObjects(c, params, result)
   ]).then(parsers.parseValidationResults)
-    .then(function (r) {
-      return { users: r };    
-    });
 }
 
 validateUsers({}, {
-  array: [1, 2, 3]
+  array: [1, 2, 3],
+  arrayObjects: [1, 2, 3]
 }).then(function (r) {
-  console.log(r);   
+  console.log(JSON.stringify(r, null, 2));
 });
 
 function createUsers(c, params) {
