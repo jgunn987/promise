@@ -66,7 +66,6 @@ function serializeCondBoth(c, params, result) {
 
 function serializeArray(c, params, result) {
   if(result.array) return result.array;
-
   return result.array = 
     Promise.all(params.array.map(function (v) {
       return v * v;
@@ -77,35 +76,18 @@ function serializeArray(c, params, result) {
 
 function serializeNestedObject(c, params, result) {
   if(result.nestedObject) return result.nestedObject;
-
-  var subResult = {};
-  return result.nestedObject = Promise.all([
-    serializeSync(c, params, result),
-    serializeOne(c, params, subResult),
-    serializeTwo(c, params, subResult),
-    serializeBoth(c, params, subResult),
-    serializeCond(c, params, subResult),
-    serializeCondBoth(c, params, subResult)
-  ]).then(parsers.parseSerializationResults)
-    .then(function (r) {
-      return { nestedObject: r };    
-    });
+  return result.nestedObject =
+    serializeSomeOtherObject(c, params.nestedObject)
+      .then(function (r) {
+        return { nestedObject: r }; 
+      });
 }
 
 function serializeArrayObjects(c, params, result) {
   if(result.arrayObjects) return result.arrayObjects;
-  
   return result.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
-      var subResult = {};
-      return Promise.all([
-        serializeSync(c, params, subResult),
-        serializeOne(c, params, subResult),
-        serializeTwo(c, params, subResult),
-        serializeBoth(c, params, subResult),
-        serializeCond(c, params, subResult),
-        serializeCondBoth(c, params, subResult)
-      ]).then(parsers.parseSerializationResults);
+      return serializeSomeOtherObject(c, v);
     })).then(function(a) {
       return { arrayObjects: a };
     });
@@ -116,6 +98,18 @@ function SerializationError(message, result) {
   error.result = result;
   error.name = 'SerializationError';
   return error;
+}
+
+function serializeSomeOtherObject(c, params) {
+  var result = {};
+  return Promise.all([
+    serializeSync(c, params, result),
+    serializeOne(c, params, result),
+    serializeTwo(c, params, result),
+    serializeBoth(c, params, result),
+    serializeCond(c, params, result),
+    serializeCondBoth(c, params, result)
+  ]).then(parsers.parseSerializationResults);
 }
 
 function serializeUsers(c, params) {
@@ -133,10 +127,9 @@ function serializeUsers(c, params) {
   ]).then(parsers.parseSerializationResults);
 }
 
-
 function validateSync(c, params, result) {
   return result.sync = result.sync || 
-    { sync: isemail.validate(params.email || '') ?
+    { sync: isemail.validate(params.sync || '') ?
       undefined : 'Invalid Email Address' };
 }
 
@@ -167,24 +160,15 @@ function validateCondBoth(c, params, result) {
 
 function validateNestedObject(c, params, result) {
   if(result.nestedObject) return result.nestedObject;
-
-  var subResult = {};
-  return result.nestedObject = Promise.all([
-    validateSync(c, params, result),
-    validateOne(c, params, subResult),
-    validateTwo(c, params, subResult),
-    validateBoth(c, params, subResult),
-    validateCond(c, params, subResult),
-    validateCondBoth(c, params, subResult)
-  ]).then(parsers.parseValidationResults)
-    .then(function (r) {
-      return { nestedObject: r.__success ? undefined : r };    
-    });
+  return result.nestedObject = 
+    validateSomeOtherObject(c, params.nestedObject)
+      .then(function (r) {
+        return { nestedObject: r.__success ? undefined : r };    
+      });
 }
 
 function validateArray(c, params, result) {
   if(result.array) return result.array;
-
   return result.array = 
     Promise.all(params.array.map(function (v, i) {
       return v > 2 ? undefined : 'Greater than two';
@@ -195,18 +179,9 @@ function validateArray(c, params, result) {
 
 function validateArrayObjects(c, params, result) {
   if(result.arrayObjects) return result.arrayObjects;
-
   return result.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
-      var subResult = {};
-      return Promise.all([
-        validateSync(c, params, subResult),
-        validateOne(c, params, subResult),
-        validateTwo(c, params, subResult),
-        validateBoth(c, params, subResult),
-        validateCond(c, params, subResult),
-        validateCondBoth(c, params, subResult)
-      ]).then(parsers.parseValidationResults);
+      return validateSomeOtherObject(c, v);
     })).then(function(a) {
       return { arrayObjects: a };
     });
@@ -217,6 +192,18 @@ function ValidationError(message, result) {
   error.result = result;
   error.name = 'ValidationError';
   return error;
+}
+
+function validateSomeOtherObject(c, params) {
+  var result = {};
+  return Promise.all([
+    validateSync(c, params, result),
+    validateOne(c, params, result),
+    validateTwo(c, params, result),
+    validateBoth(c, params, result),
+    validateCond(c, params, result),
+    validateCondBoth(c, params, result),
+  ]).then(parsers.parseValidationResults);
 }
 
 function validateUsers(c, params) {
@@ -234,17 +221,24 @@ function validateUsers(c, params) {
   ]).then(parsers.parseValidationResults);
 }
 
-validateUsers({}, {
-  email: 'jgunn987@gmail.com',
-  array: [1, 2, 3],
-  arrayObjects: [1, 2, 3]
-}).then(function (r) {
+var data = {
+  sync: 'jgunn987@gmail.com',
+  array: [3, 3, 3],
+  nestedObject: {
+    sync: 'jgunn987@gmail.com'
+  },
+  arrayObjects: [{
+    sync: 'jgunn987@gmail.com'
+  }, {
+    sync: 'jgunn987@gmail.com'
+  }, {
+    sync: 'jgunn987@gmail.com'
+  }]
+};
+
+validateUsers({}, data).then(function (r) {
   console.log(JSON.stringify(r, null, 2));
-  
-  serializeUsers({}, {
-    array: [1, 2, 3],
-    arrayObjects: [{}, {}, {}]
-  }).then(function (r) {
+  serializeUsers({}, data).then(function (r) {
     console.log(JSON.stringify(r, null, 2));
   });
 });
