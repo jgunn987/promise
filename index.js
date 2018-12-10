@@ -6,11 +6,22 @@ function parseSerializationResults(results) {
   }, {});
 }
 
+function isArray(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+}
+
 function parseValidationResults(results) {
   var error = false;
   var result = results.reduce(function (p, c) {
     return Object.keys(c).filter(function (k) {
-      if(c[k]) return error = true;
+      if(isArray(c[k])) {
+        c[k].forEach(function (r) {
+          if(!r.__success) return error = true;
+        });  
+      } else if (c[k]) {
+        return error = true;
+      }
+      return error;
     }).length ? Object.assign(p, c) : p;
   }, {});
 

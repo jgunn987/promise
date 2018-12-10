@@ -6,6 +6,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.3",
+    "isemail": "^3.2.0",
     "npm-exists": "^1.0.1",
     "promise": "^8.0.2",
     "request": "^2.88.0"

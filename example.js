@@ -1,6 +1,7 @@
 var axios = require('axios');
 var Promise = require('promise');
 var parsers = require('.');
+var isemail = require('isemail');
 
 function serializeSync(c, params, result) {
   return result.sync = result.sync || { sync: 'sync' };
@@ -84,7 +85,8 @@ function serializeUsers(c, params) {
 
 function validateSync(c, params, result) {
   return result.sync = result.sync || 
-    { sync: 'No Sync Parameter' };
+    { sync: isemail.validate(params.email || '') || 
+      'Invalid Email Address' };
 }
 
 function validateOne(c, params, result) {
@@ -112,6 +114,45 @@ function validateCondBoth(c, params, result) {
     { condBoth: undefined };
 }
 
+function validateNestedObject(c, params, result) {
+  if(result.nestedObject) return result.nestedObject;
+
+  var subResult = {};
+  return result.nestedObject = Promise.all([
+    validateSync(c, params, result),
+    validateOne(c, params, subResult),
+    validateTwo(c, params, subResult),
+    validateBoth(c, params, subResult),
+    validateCond(c, params, subResult),
+    validateCondBoth(c, params, subResult)
+  ]).then(parsers.parseValidationResults)
+    .then(function (r) {
+        console.log(r);
+      return { nestedObject: r.__success ? undefined : r };    
+    });
+}
+
+function validateArray(c, params, result) {
+  if(result.array) return result.array;
+
+  return result.array = 
+    Promise.all(params.array.map(function (v, i) {
+      var subResult = {};
+      var promises = [];
+      if (i == 1) promises.push(validateSync(c, params, result));
+      promises = promises.concat([
+        validateOne(c, params, subResult),
+        validateTwo(c, params, subResult),
+        validateBoth(c, params, subResult),
+        validateCond(c, params, subResult),
+        validateCondBoth(c, params, subResult)
+      ]);
+      return Promise.all(promises).then(parsers.parseValidationResults)
+    })).then(function(a) {
+      return { array: a };
+    });
+}
+
 function ValidationError(message, result) {
   var error = new Error(message);
   error.result = result;
@@ -122,31 +163,42 @@ function ValidationError(message, result) {
 function validateUsers(c, params) {
   var result = {};
   return Promise.all([
-    validateSync(c, params, result),
+    //validateSync(c, params, result),
     validateOne(c, params, result),
     validateTwo(c, params, result),
     validateBoth(c, params, result),
     validateCond(c, params, result),
-    validateCondBoth(c, params, result)
-  ]).then(parsers.parseValidationResults);
+    validateCondBoth(c, params, result),
+    validateNestedObject(c, params, result),
+    validateArray(c, params, result)
+  ]).then(parsers.parseValidationResults)
+    .then(function (r) {
+      return { users: r };    
+    });
 }
 
-validateUsers({}, {})
-  .then(function (r) {
-     console.log(r);   
-   });
+validateUsers({}, {
+  array: [1, 2, 3]
+}).then(function (r) {
+  console.log(r);   
+});
 
 function createUsers(c, params) {
-  validateUsers(c.params)
+  validateUsers(c, params)
     .then(function (result) {
       if(!result.__success) {
         throw new ValidationError('Invalid User', result);
       }
+
       return serializeUsers(c, params);
     }).then(function (r) {
-      return c.db.collection('user')
-        .insertOne(model.user(r));
+      return c.db.then(function (db) {
+        db.collection('user')
+         .insertOne(model.user(r));
+      });
     });
 }
 
-createUsers({}, {});
+//createUsers({}, {
+//  array: []    
+//});

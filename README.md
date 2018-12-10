@@ -14,7 +14,10 @@ If the function is async it is required to return a promise which returns the sa
 { [fieldName] : [value] }
 ```
 
-For validators the value field of this object should be set to ```undefined``` for a successful operation or on failure any other value(preferably a ```string``` describing the error).
+For validators the value field of this object should be set to ```undefined``` for a successful operation or on failure one of the following 
+Atomic fields = ```string```
+Nested Fields = ```object```
+Arrays = ```array```
 
 Dependencies
 ============
