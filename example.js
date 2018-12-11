@@ -4,7 +4,8 @@ var parsers = require('.');
 var isemail = require('isemail');
 
 function serializeSync(c, params, context) {
-  return context.sync = context.sync || { sync: 'sync' };
+  return context.sync = context.sync || 
+    { sync: 'sync' };
 }
 
 function serializeOne(c, params, context) {
@@ -50,17 +51,13 @@ function serializeCond(c, params, context) {
 function serializeCondBoth(c, params, context) {
   return context.condBoth = context.condBoth ||
     Promise.all([
-      serializeOne(c, params, context), // condition
-      serializeTwo(c, params, context) // condition
+      serializeOne(c, params, context), // dependency
+      serializeTwo(c, params, context) // dependency
     ]).then(function (u) {
       return u[0].one === 'Leanne Graham' &&
              u[1].two === 'Leanne Graham' ?
-        Promise.all([ // dependencies
-          serializeOne(c, params, context),
-          serializeTwo(c, params, context)
-        ]).then(function (r) {
-          return { condBoth: r[0].one + ' + ' + r[1].two }; 
-        }) : { condBoth: undefined };
+        { condBoth: r[0].one + ' + ' + r[1].two } : 
+        { condBoth: undefined };
     });
 }
 
@@ -168,8 +165,6 @@ function validateCondBoth(c, params, context) {
 
 function validateNestedObject(c, params, context) {
   if(context.nestedObject) return context.nestedObject;
-  if(typeof params.nestedObject !== 'object')
-    return { nestedObject: { __vglobal: 'not an object', __valid: false } };
 
   return context.nestedObject = 
     validateSomeOtherObject(c, params.nestedObject)
@@ -214,8 +209,17 @@ function validate(c, params, fields) {
   })).then(parsers.parseValidationResults);
 }
 
+function validateGlobal(c, params, context) {
+  if(context.validateGlobal) return context.validateGlobal;
+
+  return context.validateGlobal = 
+    Object.keys(params).length === 0 ?
+      { __vglobal: 'Empty Object' } : {}
+}
+
 function validateSomeOtherObject(c, params) {
   return validate(c, params, [
+    validateGlobal,
     validateSync,
     validateOne,
     validateTwo,
@@ -252,9 +256,9 @@ var data = {
   }]
 };
 
-validateUsers({}, data).then(function (r) {
-  console.log(JSON.stringify(r, null, 2));
+validateUsers({}, data).then(function (validation) {
   serializeUsers({}, data).then(function (r) {
+    r._validation = validation;
     console.log(JSON.stringify(r, null, 2));
   });
 });

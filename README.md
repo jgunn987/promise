@@ -6,7 +6,7 @@ Serialization and Validation
 ============================
 Each field serializer and validator is a function with the following signature;
 ```
-function (c, params, result)
+function (c, params, context)
 ```
 If the function is synchonous, it's return type is an object in the following form; 
 If the function is async it is required to return a promise which returns the same object form.
@@ -21,20 +21,20 @@ Arrays = ```array```
 
 Dependencies
 ============
-A handler may depend on the results of other handlers. To ensure a handler is not called more than once it is recommended to cache results into the ```result``` field. For example
+A handler may depend on the results of other handlers. To ensure a handler is not called more than once it is recommended to cache results into the current context. For example
 ```
-function fieldName(c, params, result) {
-  return result.fieldName = result.fieldName ||
+function fieldName(c, params, context) {
+  return context.fieldName = context.fieldName ||
     { fieldName: params.fieldName.toString() };
 }
 ```
 It is recommended that ```Promise.all``` is used to reference other dependant handlers. For example;
 ```
-function serializeFullName(c, params, result) {
-  return result.fullName = result.fullName ||
+function serializeFullName(c, params, context) {
+  return context.fullName = context.fullName ||
     Promise.all([
-      serializeFirstName(c, params, result),
-      serializeLastName(c, params, result)
+      serializeFirstName(c, params, context),
+      serializeLastName(c, params, context)
     ]).then(function (r) {
       return { fullName: r[0].firstName + ' + ' + r[1].lastName }; 
     });
@@ -45,9 +45,9 @@ Conditional Processing
 ======================
 A handler may also want to perform conditional processing. As with dependencies, the use of ```Promise.all``` is recommended. For example;
 ```
-function serializeHashName(c, params, result) {
-  return result.hashName = result.hashName ||
-    serializeFullName(c, params, result)
+function serializeHashName(c, params, context) {
+  return context.hashName = context.hashName ||
+    serializeFullName(c, params, context)
       .then(function (r) {
         return { hashName: 
           r.fullName === 'James Gunn' ? 'ok' : undefined
