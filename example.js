@@ -3,13 +3,13 @@ var Promise = require('promise');
 var parsers = require('.');
 var isemail = require('isemail');
 
-function serializeSync(c, params, context) {
-  return context.sync = context.sync || 
+function serializeSync(c, params, cache) {
+  return cache.sync = cache.sync || 
     { sync: 'sync' };
 }
 
-function serializeOne(c, params, context) {
-  return context.one = context.one || 
+function serializeOne(c, params, cache) {
+  return cache.one = cache.one || 
     axios.get('https://jsonplaceholder.typicode.com/users')
       .then(function (users) {
         return { one: users.data.find(function (u, i) {
@@ -18,8 +18,8 @@ function serializeOne(c, params, context) {
       });
 }
 
-function serializeTwo(c, params, context) {
-  return context.two = context.two || 
+function serializeTwo(c, params, cache) {
+  return cache.two = cache.two || 
     axios.get('https://jsonplaceholder.typicode.com/users')
       .then(function (users) {
         return { two: users.data.find(function (u, i) {
@@ -28,19 +28,19 @@ function serializeTwo(c, params, context) {
       });
 }
 
-function serializeBoth(c, params, context) {
-  return context.both = context.both ||
+function serializeBoth(c, params, cache) {
+  return cache.both = cache.both ||
     Promise.all([
-      serializeOne(c, params, context),
-      serializeTwo(c, params, context)
+      serializeOne(c, params, cache),
+      serializeTwo(c, params, cache)
     ]).then(function (r) {
       return { both: r[0].one + ' + ' + r[1].two }; 
     });
 }
 
-function serializeCond(c, params, context) {
-  return context.cond = context.cond ||
-    serializeOne(c, params, context)
+function serializeCond(c, params, cache) {
+  return cache.cond = cache.cond ||
+    serializeOne(c, params, cache)
       .then(function (u) {
         return { cond: 
           u.one === 'Leanne Graham' && params.cond ? 'ok': undefined
@@ -48,11 +48,11 @@ function serializeCond(c, params, context) {
       });
 }
 
-function serializeCondBoth(c, params, context) {
-  return context.condBoth = context.condBoth ||
+function serializeCondBoth(c, params, cache) {
+  return cache.condBoth = cache.condBoth ||
     Promise.all([
-      serializeOne(c, params, context), // dependency
-      serializeTwo(c, params, context) // dependency
+      serializeOne(c, params, cache), // dependency
+      serializeTwo(c, params, cache) // dependency
     ]).then(function (u) {
       return u[0].one === 'Leanne Graham' &&
              u[1].two === 'Leanne Graham' ?
@@ -61,10 +61,10 @@ function serializeCondBoth(c, params, context) {
     });
 }
 
-function serializeArray(c, params, context) {
-  if(context.array) return context.array;
+function serializeArray(c, params, cache) {
+  if(cache.array) return cache.array;
 
-  return context.array = 
+  return cache.array = 
     Promise.all(params.array.map(function (v) {
       return v * v;
     })).then(function (r) {
@@ -72,20 +72,20 @@ function serializeArray(c, params, context) {
     });
 }
 
-function serializeNestedObject(c, params, context) {
-  if(context.nestedObject) return context.nestedObject;
+function serializeNestedObject(c, params, cache) {
+  if(cache.nestedObject) return cache.nestedObject;
 
-  return context.nestedObject =
+  return cache.nestedObject =
     serializeSomeOtherObject(c, params.nestedObject)
       .then(function (r) {
         return { nestedObject: r }; 
       });
 }
 
-function serializeArrayObjects(c, params, context) {
-  if(context.arrayObjects) return context.arrayObjects;
+function serializeArrayObjects(c, params, cache) {
+  if(cache.arrayObjects) return cache.arrayObjects;
 
-  return context.arrayObjects = 
+  return cache.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
       return serializeSomeOtherObject(c, v);
     })).then(function(a) {
@@ -101,9 +101,9 @@ function SerializationError(message, context) {
 }
 
 function serialize(c, params, fields) {
-  var context = {};
+  var cache = {};
   return Promise.all(fields.map(function (v) {
-    return v(c, params, context);
+    return v(c, params, cache);
   })).then(parsers.parseSerializationResults);
 }
 
@@ -132,51 +132,51 @@ function serializeUsers(c, params) {
   ]);
 }
 
-function validateSync(c, params, context) {
-  return context.sync = context.sync || 
+function validateSync(c, params, cache) {
+  return cache.sync = cache.sync || 
     { sync: isemail.validate(params.sync || '') ?
       undefined : 'Invalid Email Address' };
 }
 
-function validateOne(c, params, context) {
-  return context.one = context.one ||
+function validateOne(c, params, cache) {
+  return cache.one = cache.one ||
     { one: undefined };
 }
 
-function validateTwo(c, params, context) {
-  return context.two = context.two ||
+function validateTwo(c, params, cache) {
+  return cache.two = cache.two ||
     { two: undefined };
 }
 
-function validateBoth(c, params, context) {
-  return context.both = context.both ||
+function validateBoth(c, params, cache) {
+  return cache.both = cache.both ||
     { both: undefined };
 }
 
-function validateCond(c, params, context) {
-  return context.cond = context.cond ||
+function validateCond(c, params, cache) {
+  return cache.cond = cache.cond ||
     { cond: undefined };
 }
 
-function validateCondBoth(c, params, context) {
-  return context.condBoth = context.condBoth ||
+function validateCondBoth(c, params, cache) {
+  return cache.condBoth = cache.condBoth ||
     { condBoth: undefined };
 }
 
-function validateNestedObject(c, params, context) {
-  if(context.nestedObject) return context.nestedObject;
+function validateNestedObject(c, params, cache) {
+  if(cache.nestedObject) return cache.nestedObject;
 
-  return context.nestedObject = 
+  return cache.nestedObject = 
     validateSomeOtherObject(c, params.nestedObject)
       .then(function (r) {
         return { nestedObject: r.__success ? undefined : r };    
       });
 }
 
-function validateArray(c, params, context) {
-  if(context.array) return context.array;
+function validateArray(c, params, cache) {
+  if(cache.array) return cache.array;
 
-  return context.array = 
+  return cache.array = 
     Promise.all(params.array.map(function (v, i) {
       return v > 2 ? undefined : 'Greater than two';
     })).then(function (r) {
@@ -184,10 +184,10 @@ function validateArray(c, params, context) {
     });
 }
 
-function validateArrayObjects(c, params, context) {
-  if(context.arrayObjects) return context.arrayObjects;
+function validateArrayObjects(c, params, cache) {
+  if(cache.arrayObjects) return cache.arrayObjects;
 
-  return context.arrayObjects = 
+  return cache.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
       return validateSomeOtherObject(c, v);
     })).then(function(a) {
@@ -203,16 +203,16 @@ function ValidationError(message, context) {
 }
 
 function validate(c, params, fields) {
-  var context = {};
+  var cache = {};
   return Promise.all(fields.map(function (v) {
-    return v(c, params, context);
+    return v(c, params, cache);
   })).then(parsers.parseValidationResults);
 }
 
-function validateGlobal(c, params, context) {
-  if(context.validateGlobal) return context.validateGlobal;
+function validateGlobal(c, params, cache) {
+  if(cache.validateGlobal) return cache.validateGlobal;
 
-  return context.validateGlobal = 
+  return cache.validateGlobal = 
     Object.keys(params).length === 0 ?
       { __vglobal: 'Empty Object' } : {}
 }
