@@ -76,7 +76,7 @@ function serializeNestedObject(c, params, cache) {
   if(cache.nestedObject) return cache.nestedObject;
 
   return cache.nestedObject =
-    serializeSomeOtherObject(c, params.nestedObject)
+    serializeSomeOtherObject(c, params.nestedObject, cache)
       .then(function (r) {
         return { nestedObject: r }; 
       });
@@ -87,10 +87,22 @@ function serializeArrayObjects(c, params, cache) {
 
   return cache.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
-      return serializeSomeOtherObject(c, v);
+      return serializeSomeOtherObject(c, v, cache);
     })).then(function(a) {
       return { arrayObjects: a };
     });
+}
+
+function serializeGetParent(c, params, cache) {
+  if(cache.getParent) return cache.getParent;
+
+  console.log(cache);
+  return cache.getParent = 
+    serializeOne(c, params, cache.__parent)
+      .then(function(a) {
+        return { getParent: a.one };
+      });
+
 }
 
 function SerializationError(message, context) {
@@ -100,25 +112,26 @@ function SerializationError(message, context) {
   return error;
 }
 
-function serialize(c, params, fields) {
-  var cache = {};
-  return Promise.all(fields.map(function (v) {
+function serialize(c, params, handlers, parentCache) {
+  var cache = { __params: params, __parent: parentCache };
+  return Promise.all(handlers.map(function (v) {
     return v(c, params, cache);
   })).then(parsers.parseSerializationResults);
 }
 
-function serializeSomeOtherObject(c, params) {
+function serializeSomeOtherObject(c, params, cache) {
   return serialize(c, params, [
     serializeSync,
     serializeOne,
     serializeTwo,
     serializeBoth,
     serializeCond,
-    serializeCondBoth
-  ]);
+    serializeCondBoth,
+    serializeGetParent
+  ], cache);
 }
 
-function serializeUsers(c, params) {
+function serializeUsers(c, params, cache) {
   return serialize(c, params, [
     serializeSync,
     serializeOne,
@@ -129,7 +142,7 @@ function serializeUsers(c, params) {
     serializeArray,
     serializeNestedObject,
     serializeArrayObjects
-  ]);
+  ], cache);
 }
 
 function validateSync(c, params, cache) {
@@ -167,7 +180,7 @@ function validateNestedObject(c, params, cache) {
   if(cache.nestedObject) return cache.nestedObject;
 
   return cache.nestedObject = 
-    validateSomeOtherObject(c, params.nestedObject)
+    validateSomeOtherObject(c, params.nestedObject, cache)
       .then(function (r) {
         return { nestedObject: r.__success ? undefined : r };    
       });
@@ -189,10 +202,21 @@ function validateArrayObjects(c, params, cache) {
 
   return cache.arrayObjects = 
     Promise.all(params.arrayObjects.map(function (v, i) {
-      return validateSomeOtherObject(c, v);
+      return validateSomeOtherObject(c, v, cache);
     })).then(function(a) {
       return { arrayObjects: a };
     });
+}
+
+function validateGetParent(c, params, cache) {
+  if(cache.getParent) return cache.getParent;
+
+  return cache.getParent = 
+    validateArray(c, cache.__parent.__params, cache.__parent)
+      .then(function (c) {
+        console.log(c);
+        return { getParent: 'yo' };
+      });
 }
 
 function ValidationError(message, context) {
@@ -202,8 +226,8 @@ function ValidationError(message, context) {
   return error;
 }
 
-function validate(c, params, fields) {
-  var cache = {};
+function validate(c, params, fields, parentCache) {
+  var cache = { __params: params, __parent: parentCache };
   return Promise.all(fields.map(function (v) {
     return v(c, params, cache);
   })).then(parsers.parseValidationResults);
@@ -217,7 +241,7 @@ function validateGlobal(c, params, cache) {
       { __vglobal: 'Empty Object' } : {}
 }
 
-function validateSomeOtherObject(c, params) {
+function validateSomeOtherObject(c, params, cache) {
   return validate(c, params, [
     validateGlobal,
     validateSync,
@@ -225,11 +249,12 @@ function validateSomeOtherObject(c, params) {
     validateTwo,
     validateBoth,
     validateCond,
-    validateCondBoth
-  ]);
+    validateCondBoth,
+    validateGetParent
+  ], cache);
 }
 
-function validateUsers(c, params) {
+function validateUsers(c, params, cache) {
   return validate(c, params, [
     validateSync,
     validateOne,
@@ -240,7 +265,7 @@ function validateUsers(c, params) {
     validateNestedObject,
     validateArray,
     validateArrayObjects
-  ]);
+  ], cache);
 }
 
 var data = {

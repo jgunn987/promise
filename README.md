@@ -27,7 +27,7 @@ Nested Fields = ```object```
 Arrays = ```array```
 
 ### Dependencies
-A handler may depend on the results of other handlers. To ensure a handler is not called more than once it is recommended to cache results into the cache variable. For example
+A handler may depend on the results of other handlers. To ensure a handler is not called more than once it is recommended to cache results into the cache object. For example
 ```
 function fieldName(c, params, cache) {
   return cache.fieldName = cache.fieldName ||
