@@ -96,13 +96,11 @@ function serializeArrayObjects(c, params, cache) {
 function serializeGetParent(c, params, cache) {
   if(cache.getParent) return cache.getParent;
 
-  console.log(cache);
   return cache.getParent = 
-    serializeOne(c, params, cache.__parent)
+    serializeOne(c, cache.__parent.__params, cache.__parent)
       .then(function(a) {
         return { getParent: a.one };
       });
-
 }
 
 function SerializationError(message, context) {
@@ -214,7 +212,6 @@ function validateGetParent(c, params, cache) {
   return cache.getParent = 
     validateArray(c, cache.__parent.__params, cache.__parent)
       .then(function (c) {
-        console.log(c);
         return { getParent: 'yo' };
       });
 }
@@ -238,7 +235,7 @@ function validateGlobal(c, params, cache) {
 
   return cache.validateGlobal = 
     Object.keys(params).length === 0 ?
-      { __vglobal: 'Empty Object' } : {}
+      { global: 'Empty Object' } : {}
 }
 
 function validateSomeOtherObject(c, params, cache) {
@@ -283,8 +280,9 @@ var data = {
 
 validateUsers({}, data).then(function (validation) {
   serializeUsers({}, data).then(function (r) {
-    r._validation = validation;
-    console.log(JSON.stringify(r, null, 2));
+    console.log(JSON.stringify(Object.assign({}, r, { 
+      _validation: validation
+    }), null, 2))
   });
 });
 
