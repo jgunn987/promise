@@ -4,6 +4,7 @@ var parsers = require('.');
 var isemail = require('isemail');
 
 function serializeSync(c, params, cache) {
+  return {};
   return { sync: 'sync' };
 }
 
@@ -94,7 +95,7 @@ function serializeSomeOtherObject(c, params, cache) {
     sboth: serializeBoth,
     scond: serializeCond,
     scondBoth: serializeCondBoth
-  });
+  }, cache);
 }
 
 function serializeUsers(c, params, cache) {
@@ -110,12 +111,23 @@ function serializeUsers(c, params, cache) {
     scondBoth: serializeCondBoth,
     sa: serializeArray,
     sno: serializeNestedObject,
-    sao: serializeArrayObjects
+    sao: serializeArrayObjects,
+    validation: validateUser
+  }, cache);
+}
+
+function validateUser(c, params, cache) {
+  return serialize(c, params, {
+    name: function (c, params, cache) {
+      return { name: 'invalid' };
+    }
+  }, cache).then(function (r) {
+    return { validation: r };  
   });
 }
 
-function serialize(c, params, handlers, parentCache) {
-  var cache = parentCache || {};
+function serialize(c, params, handlers, cache) {
+  var cache = cache || {};
   return Promise.all(Object.keys(handlers).map(function (k) {
     return cache[k] = cache[k] || handlers[k](c, params, cache);
   })).then(parsers.parseSerializationResults);
