@@ -2,13 +2,25 @@ var axios = require('axios');
 var Promise = require('promise');
 var parsers = require('.');
 var isemail = require('isemail');
+var exists = require('npm-exists');
 
-function serializeSync(c, params, cache) {
-  return {};
-  return { sync: 'sync' };
+function serializeSync(c, params) {
+//  return {};
+//  return { sync: 'sync' };
+
+  return exists(process.argv[2])
+    .then(moduleExists => {
+        if (moduleExists) {
+            console.log('gosh, `request` name already taken!');
+            return { exists: true };
+        } else {
+            console.log('you can register `request`');
+            return { exists: false };
+        }
+    });
 }
 
-function serializeOne(c, params, cache) {
+function serializeOne(c, params) {
   return axios.get('https://jsonplaceholder.typicode.com/users')
     .then(function (users) {
       return { one: users.data.find(function (u, i) {
@@ -17,7 +29,7 @@ function serializeOne(c, params, cache) {
     });
 }
 
-function serializeTwo(c, params, cache) {
+function serializeTwo(c, params) {
   return axios.get('https://jsonplaceholder.typicode.com/users')
     .then(function (users) {
       return { two: users.data.find(function (u, i) {
@@ -27,18 +39,18 @@ function serializeTwo(c, params, cache) {
 }
 
 function serializeBoth(c, params, cache) {
-  return serialize(c, params, {
-    sone: serializeOne,
-    stwo: serializeTwo
-  }, cache).then(function (r) {
+  return serialize(c, params, [
+    serializeOne,
+    serializeTwo
+  ], cache).then(function (r) {
     return { both: r.one + ' + ' + r.two }; 
   });
 }
 
 function serializeCond(c, params, cache) {
-  return serialize(c, params, {
-    sone: serializeOne
-  }, cache).then(function (u) {
+  return serialize(c, params, [
+    serializeOne
+  ], cache).then(function (u) {
     return { cond: 
       u.one === 'Leanne Graham' && params.cond ? 'ok': undefined
     };
@@ -46,10 +58,10 @@ function serializeCond(c, params, cache) {
 }
 
 function serializeCondBoth(c, params, cache) {
-  return serialize(c, params, {
-    sone: serializeOne,
-    stwo: serializeTwo
-  }, cache).then(function (u) {
+  return serialize(c, params, [
+    serializeOne,
+    serializeTwo
+  ], cache).then(function (u) {
     return u.one === 'Leanne Graham' &&
            u.two === 'Leanne Graham' ?
       { condBoth: u.one + ' + ' + u.two } : 
@@ -57,7 +69,7 @@ function serializeCondBoth(c, params, cache) {
   });
 }
 
-function serializeArray(c, params, cache) {
+function serializeArray(c, params) {
   return Promise.all(params.array.map(function (v) {
     return v * v;
   })).then(function (r) {
@@ -65,14 +77,14 @@ function serializeArray(c, params, cache) {
   });
 }
 
-function serializeNestedObject(c, params, cache) {
+function serializeNestedObject(c, params) {
   return serializeSomeOtherObject(c, params.nestedObject)
     .then(function (r) {
       return { nestedObject: r }; 
     });
 }
 
-function serializeArrayObjects(c, params, cache) {
+function serializeArrayObjects(c, params) {
   return Promise.all(params.arrayObjects.map(function (v, i) {
     return serializeSomeOtherObject(c, v);
   })).then(function(a) {
@@ -88,48 +100,54 @@ function SerializationError(message, context) {
 }
 
 function serializeSomeOtherObject(c, params, cache) {
-  return serialize(c, params, {
-    ssync: serializeSync,
-    sone: serializeOne,
-    stwo: serializeTwo,
-    sboth: serializeBoth,
-    scond: serializeCond,
-    scondBoth: serializeCondBoth
-  }, cache);
+  return serialize(c, params, [
+    serializeSync,
+    serializeOne,
+    serializeTwo,
+    serializeBoth,
+    serializeCond,
+    serializeCondBoth
+  ], cache);
 }
 
 function serializeUsers(c, params, cache) {
-  return serialize(c, params, {
-    global: function (c, params, cache) {
+  return serialize(c, params, [
+    function (c, params, cache) {
       return { global: 'yes' };
     },
-    ssync: serializeSync,
-    sone: serializeOne,
-    stwo: serializeTwo,
-    sboth: serializeBoth,
-    scond: serializeCond,
-    scondBoth: serializeCondBoth,
-    sa: serializeArray,
-    sno: serializeNestedObject,
-    sao: serializeArrayObjects,
-    validation: validateUser
-  }, cache);
+    serializeSync,
+    serializeOne,
+    serializeTwo,
+    serializeBoth,
+    serializeCond,
+    serializeCondBoth,
+    serializeArray,
+    serializeNestedObject,
+    serializeArrayObjects,
+    validateUser
+  ], cache);
 }
 
 function validateUser(c, params, cache) {
-  return serialize(c, params, {
-    name: function (c, params, cache) {
+  return serialize(c, params, [
+    function (c, params, cache) {
       return { name: 'invalid' };
     }
-  }, cache).then(function (r) {
+  ], cache).then(function (r) {
     return { validation: r };  
   });
 }
 
+var uuid = 0;
+
+Function.prototype._key = function () {
+  return this._$key = this._$key || ++uuid;
+};
+
 function serialize(c, params, handlers, cache) {
   var cache = cache || {};
-  return Promise.all(Object.keys(handlers).map(function (k) {
-    return cache[k] = cache[k] || handlers[k](c, params, cache);
+  return Promise.all(handlers.map(function (fn) {
+    return cache[fn._key()] = cache[fn._$key] || fn(c, params, cache);
   })).then(parsers.parseSerializationResults);
 }
 /*
