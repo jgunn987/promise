@@ -21,7 +21,7 @@ function defaultFullName(c, params, cache) {
 }
 
 function defaultAddressInfo(c, params, cache) {
-  return defaultAddress(c, Object.assign(params.address || {}, {
+  return defaultAddress(c, Object.assign({}, params.address || {}, {
     _parent: params,
     _id: uuid.v4()
   })).then(function (address) {
@@ -32,7 +32,7 @@ function defaultAddressInfo(c, params, cache) {
 function defaultSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return defaultSubscription(c, Object.assign(s, {
+    return defaultSubscription(c, Object.assign({}, s, {
       _parent: params,
       _id: uuid.v4()
     }));
