@@ -2,6 +2,10 @@ var pzone = require('./../.');
 var serializeAddress = require('./serializeAddress');
 var serializeSubscription = require('./serializeSubscription');
 
+function serializeId(c, params) {
+  return { _id: params._id };
+}
+
 function serializeFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
 }
@@ -48,6 +52,7 @@ function serializeSubscribers(c, params, cache) {
 
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
+    serializeId,
     serializeFirstName,
     serializeLastName,
     serializeFullName,

@@ -2,6 +2,11 @@ var Promise = require('promise');
 var pzone = require('./../.');
 var defaultAddress = require('./defaultAddress');
 var defaultSubscription = require('./defaultSubscription');
+var uuid = require('uuid');
+
+function defaultId(c, params) {
+  return { _id: params._id || uuid.v4() };
+}
 
 function defaultFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
@@ -42,6 +47,7 @@ function defaultSubscribers(c, params, cache) {
 
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
+    defaultId,
     defaultFirstName,
     defaultLastName,
     defaultFullName,

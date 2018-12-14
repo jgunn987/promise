@@ -2,6 +2,10 @@ var pzone = require('./../.');
 var deserializeAddress = require('./deserializeAddress');
 var deserializeSubscription = require('./deserializeSubscription');
 
+function deserializeId(c, params) {
+  return { _id: params._id };
+}
+
 function deserializeFirstName(c, params) {
   return { firstName: params.firstName };
 }
@@ -32,6 +36,7 @@ function deserializeSubscribers(c, params, cache) {
 
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
+    deserializeId,
     deserializeFirstName,
     deserializeLastName, 
     deserializeEmail,
