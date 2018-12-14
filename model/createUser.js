@@ -24,6 +24,13 @@ function createUser(c, params) {
     });
 }
 
+function hasUser(c, params) {
+  return c.get('db').then(function (db) {
+    return db.collection('user').countDocuments({ _id: params._id })
+      .then(Boolean);
+  });
+}
+
 function getUser(c, params) {
   return c.get('db').then(function (db) {
     return db.collection('user').findOne({ _id: params._id });
@@ -45,5 +52,6 @@ function getUsers(c, params) {
 }
 
 module.exports.createUser = createUser;
+module.exports.hasUser = hasUser;
 module.exports.getUser = getUser;
 module.exports.getUsers = getUsers;

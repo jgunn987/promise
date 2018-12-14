@@ -27,8 +27,9 @@ methods.createUser(c, {
     events: ['email']
   }, {}]
 }).then(function (_id) {
-    methods.getUser(c, { _id: _id }).then(console.log);
-    methods.getUsers(c, {}).then(console.log);
+    //methods.getUser(c, { _id: _id }).then(console.log);
+    //methods.getUsers(c, {}).then(console.log);
+    methods.hasUser(c, { _id: _id }).then(console.log);
   }).catch(function (err) {
     console.log(err);
     process.exit(0);
