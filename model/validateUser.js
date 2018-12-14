@@ -14,16 +14,19 @@ function validateSync(c, params, cache) {
 }
 
 function validateAddressInfo(c, params, cache) {
-  return validateAddress(c, params.address || {})
-    .then(function (result) {
-      return { address: isEmpty(result) ? undefined : result };
-    });
+  return validateAddress(c, Object.assign(params.address || {}, {
+    _parent: params
+  })).then(function (result) {
+    return { address: isEmpty(result) ? undefined : result };
+  });
 }
 
 function validateSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return validateSubscription(c, s).then(function (validation) {
+    return validateSubscription(c, Object.assign(s, {
+      _parent: params      
+    })).then(function (validation) {
       return isEmpty(validation) ? undefined : validation;
     });
   })).then(function (subscribers) {

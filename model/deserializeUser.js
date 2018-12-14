@@ -14,16 +14,19 @@ function deserializeSync(c, params, cache) {
 }
 
 function deserializeAddressInfo(c, params) {
-  return deserializeAddress(c, params.address)
-    .then(function (address) {
-      return { address: params.address };
-    });
+  return deserializeAddress(c, Object.assign(params.address, {
+    _parent: params
+  })).then(function (address) {
+    return { address: address };
+  });
 }
 
 function deserializeSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return deserializeSubscription(c, s);
+    return deserializeSubscription(c, Object.assign(s, {
+      _parent: params      
+    }));
   })).then(function (subscribers) {
     return { subscriptions: subscribers };     
   });

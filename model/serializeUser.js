@@ -20,16 +20,19 @@ function serializeFullName(c, params, cache) {
 }
 
 function serializeAddressInfo(c, params, cache) {
-  return serializeAddress(c, params.address || {})
-    .then(function (address) {
-      return { address: address };    
-    });
+  return serializeAddress(c, Object.assign(params.address || {}, {
+    _parent: params
+  })).then(function (address) {
+    return { address: address };    
+  });
 }
 
 function serializeSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return serializeSubscription(c, s);
+    return serializeSubscription(c, Object.assign(s, {
+      _parent: params      
+    }));
   })).then(function (subscribers) {
     return { subscriptions: subscribers };     
   });
