@@ -1,12 +1,12 @@
 var Promise = require('promise');
 var EventEmitter = require('events');
 
-module.exports = function messageQueue(config) {
+module.exports = function container(config) {
   var timeout = config.timeout || 15000;
   var events = new EventEmitter();
   var store = {};
 
-  function push(bucket, k, v) {
+  function set(bucket, k, v) {
     store[bucket] = store[bucket] || {};
     return store[bucket][k] = Promise.resolve(v).then(function (r) {
       events.emit(bucket + '/' + k, r);    
@@ -14,7 +14,7 @@ module.exports = function messageQueue(config) {
     });
   }
 
-  function wait(bucket, k) {
+  function get(bucket, k) {
     return new Promise(function (resolve, reject) {
       if(bucket in store && k in store[bucket]) {
         return store[bucket][k].then(resolve); 
@@ -29,7 +29,7 @@ module.exports = function messageQueue(config) {
   }
 
   return {
-    wait: wait,
-    push: push
+    set: set,
+    get: get
   };
 };

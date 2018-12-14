@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var messageQueue = require('./messageQueue');
+var container = require('./container');
 var uuid = require('uuid');
 
 function parseResults(results) {
@@ -28,19 +28,23 @@ function asyncTask2(c, params) {
 
 function asyncTask3(c, params) {
   return Promise.all([
-    c.queue.wait(params._id, 'addressFields'),
-    c.queue.wait(params._id, 'asyncTaskZero'),
-    c.queue.wait(params._id, 'asyncTask1'),
-    c.queue.wait(params._id, 'asyncTask2')
+    c.get(params._id, 'asyncTask1'),
+    c.get(params._id, 'asyncTask2')
   ]).then(function (r) {
     return { 
-      addressLine: r[0].firstLine + r[0].secondLine,
-      nameAndEmail: r[2].email + r[3].name
+      nameAndEmail: r[0].email + r[1].name
     };
   });
 }
 
-function address(c, params, cache) {
+function subObject(c, params) {
+   return address(c, params.contact)
+     .then(function (r) {
+       return { contact : r };
+     });
+}
+
+function address(c, params) {
   return Promise.resolve({
     firstLine: params.firstLine || '9 Hadlow Road',
     secondLine: params.secondLine || 'Tonbridge',
@@ -49,29 +53,29 @@ function address(c, params, cache) {
   });
 };
 
-var c = {
-  queue: messageQueue({})
-};
+var c = container({});
+
 var params = {
-  _id: uuid.v4()
+  _id: uuid.v4(),
+  contact: {
+    _id: uuid.v4()
+  }
 };
 
-c.queue.push(params._id, 'ALL',
-  Promise.all([
-    c.queue.push(params._id, 'addressFields', 
-      address(c, params)), 
-    c.queue.push(params._id, 'asyncTaskZero', 
-      { zero: true }), 
-    c.queue.push(params._id, 'asyncTask1', 
+function user(c, params) {
+  return Promise.all([
+    address(c, params), 
+    subObject(c, params), 
+    { zero: true }, 
+    c.set(params._id, 'asyncTask1', 
       asyncTask1(c, params)),
-    c.queue.push(params._id, 'asyncTask2',
+    c.set(params._id, 'asyncTask2',
       asyncTask2(c, params)),
-    c.queue.push(params._id, 'asyncTask3', 
-      asyncTask3(c, params))
-  ]));
-  
-c.queue.wait(params._id, 'ALL')
-  .then(parseResults)
+    asyncTask3(c, params)
+  ]).then(parseResults);
+}
+ 
+user(c, params)
   .then(console.log)
   .catch(console.log);
 
