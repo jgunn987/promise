@@ -1,17 +1,8 @@
 var Promise = require('promise');
+var model = require('./model');
 var parseResults = require('./parseResults');
 var deserializeAddress = require('./deserializeAddress');
 var deserializeSubscription = require('./deserializeSubscription');
-
-function deserializeSync(c, params, cache) {
-  return Promise.resolve({ 
-    _id: params._id,
-    firstName: params.firstName,
-    lastName: params.lastName,
-    fullName: params.fullName,
-    email: params.email
-  });
-}
 
 function deserializeAddressInfo(c, params) {
   return deserializeAddress(c, model(params.address, params))
@@ -31,7 +22,13 @@ function deserializeSubscribers(c, params, cache) {
 
 module.exports = function (c, params, cache) {
   return Promise.all([
-    deserializeSync(c, params),
+    {
+      _id: params._id,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      fullName: params.fullName,
+      email: params.email
+    },
     deserializeAddressInfo(c, params),
     deserializeSubscribers(c, params)
   ]).then(parseResults);

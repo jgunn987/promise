@@ -3,22 +3,6 @@ var parseResults = require('./parseResults');
 var serializeAddress = require('./serializeAddress');
 var serializeSubscription = require('./serializeSubscription');
 
-function serializeSync(c, params) {
-  return Promise.resolve({ 
-    _id: params._id,
-    firstName: params.firstName || 'James',
-    lastName: params.lastName || 'Gunn',
-    email: params.email || 'jgunn987@gmail.com' 
-  });
-}
-
-function serializeFullName(c, params, cache) {
-  return c.get(params._id, 'serializeSync')
-    .then(function (r) {
-      return { fullName: r.firstName + r.lastName };
-    });
-}
-
 function serializeAddressInfo(c, params, cache) {
   return serializeAddress(c, Object.assign(params.address || {}, {
     _parent: params
@@ -40,8 +24,13 @@ function serializeSubscribers(c, params, cache) {
 
 module.exports = function (c, params, cache) {
   return Promise.all([
-    c.set(params._id, 'serializeSync', serializeSync(c, params)),
-    serializeFullName(c,params),
+    {
+      _id: params._id,
+      firstName: params.firstName || 'James',
+      lastName: params.lastName || 'Gunn',
+      email: params.email || 'jgunn987@gmail.com',
+      fullName: params.firstName + params.lastName
+    },
     serializeAddressInfo(c, params),
     serializeSubscribers(c, params)
   ]).then(parseResults);
