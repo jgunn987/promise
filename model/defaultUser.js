@@ -1,32 +1,22 @@
 var Promise = require('promise');
-var pzone = require('./../.');
+var parseResults = require('./parseResults');
 var defaultAddress = require('./defaultAddress');
 var defaultSubscription = require('./defaultSubscription');
-var uuid = require('uuid');
 
-function defaultId(c, params) {
-  return { _id: params._id || uuid.v4() };
-}
-
-function defaultFirstName(c, params, cache) {
-  return { firstName: params.firstName || 'James' };
-}
-
-function defaultLastName(c, params, cache) {
-  return { lastName: params.lastName || 'Gunn' };
-}
-
-function defaultFullName(c, params, cache) {
-  return pzone(c, params, [
-    defaultFirstName,
-    defaultLastName
-  ], cache).then(function (r) {
-    return { fullName: r.firstName + r.lastName };
+function defaultSync(c, params, cache) {
+  return Promise.resolve({ 
+    _id: params._id,
+    firstName: params.firstName || 'James',
+    lastName: params.lastName || 'Gunn',
+    email: params.email || 'jgunn987@gmail.com',
   });
 }
 
-function defaultEmail(c, params, cache) {
-  return { email: params.email || 'jgunn987@gmail.com' };
+function defaultFullName(c, params, cache) {
+  return c.get(params._id, 'defaultSync')
+    .then(function (r) {
+      return { fullName: r.firstName + r.lastName };
+    });
 }
 
 function defaultAddressInfo(c, params, cache) {
@@ -46,13 +36,10 @@ function defaultSubscribers(c, params, cache) {
 }
 
 module.exports = function (c, params, cache) {
-  return pzone(c, params, [
-    defaultId,
-    defaultFirstName,
-    defaultLastName,
-    defaultFullName,
-    defaultEmail,
-    defaultAddressInfo,
-    defaultSubscribers
-  ], cache);
+  return Promise.all([
+    c.set(params._id, 'defaultSync', defaultSync(c, params)),
+    defaultFullName(c, params),
+    defaultAddressInfo(c, params),
+    defaultSubscribers(c, params)
+  ]).then(parseResults)
 }

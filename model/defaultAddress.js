@@ -1,6 +1,6 @@
 Promise = require('promise');
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.resolve({
     firstLine: params.firstLine || '',
     secondLine: params.secondLine || '',

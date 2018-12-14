@@ -23,7 +23,7 @@ module.exports = function container(config) {
       var eventKey = bucket + '/' + k;
       events.on(eventKey, resolve);
       setTimeout(function () {
-        reject(new Error(eventKey + ': Task timeout'));    
+        reject(new Error(eventKey + ': Operation timeout exceeded'));    
       }, timeout);
     });
   }

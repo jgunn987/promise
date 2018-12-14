@@ -1,4 +1,5 @@
-var pzone = require('./../.');
+var Promise = require('promise');
+var parseResults = require('./parseResults');
 var validCountries = [
  'United Kingdom',
  'Netherlands',
@@ -7,31 +8,30 @@ var validCountries = [
  'France'
 ];
 
-function validateFirstLine(c, params, cache) {
-  return { firstLine: params.firstLine ? undefined : 'No first line' };
+function validateFirstLine(c, params) {
+  return Promise.resolve({ 
+    firstLine: params.firstLine ? undefined : 'No first line'
+  });
 }
 
-function validateSecondLine(c, params, cache) {
-  return {};
-}
-
-function validateCountry(c, params, cache) {
+function validateCountry(c, params) {
   if(!params.country) 
-    return { country: 'No country' };
+    return Promise.resolve({ country: 'No country' });
   if(validCountries.indexOf(params.country) === -1) 
-    return { country: 'Invalid country' };
-  return {};
+    return Promise.resolve({ country: 'Invalid country' });
+  return Promise.resolve({});
 }
 
-function validatePostcode(c, params, cache) {
-  return { postcode: params.postcode ? undefined : 'No postcode' };
+function validatePostcode(c, params) {
+  return Promise.resolve({ 
+    postcode: params.postcode ? undefined : 'No postcode'
+  });
 }
 
-module.exports = function (c, params, cache) {
-  return pzone(c, params, [
-    validateFirstLine,
-    validateSecondLine,
-    validateCountry,
-    validatePostcode
-  ], cache);
+module.exports = function (c, params) {
+  return Promise.all([
+    validateFirstLine(c, params),
+    validateCountry(c, params),
+    validatePostcode(c, params)
+  ]).then(parseResults);
 }

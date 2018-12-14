@@ -1,11 +1,7 @@
-var pzone = require('./../.');
+var Promise = require('promise');
 
 module.exports = function (c, params, cache) {
-  return pzone(c, params, [
-    function (c, params) {
-      return {
-        events: params.events.indexOf('sms') === -1 ? undefined : 'SMS not supported'
-      };
-    }
-  ], cache);
+  return Promise.resolve({
+    events: params.events.indexOf('sms') === -1 ? undefined : 'SMS not supported'
+  });
 }
