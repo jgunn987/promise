@@ -6,11 +6,10 @@ var uuid = require('uuid');
 
 module.exports = function (c, params) {
   return defaultUser(c, 
-    Object.assign(params, { 
+    Object.assign({}, params, { 
       _id: uuid.v4() 
     }))
     .then(function(user) {
-        console.log(user);
       return validateUser(c, user)
         .then(function (validation) {
           if(Object.keys(validation).length) {

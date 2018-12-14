@@ -1,4 +1,4 @@
-var pzone = require('./../.');
+var Promise = require('promise');
 var parseResults = require('./parseResults');
 var deserializeAddress = require('./deserializeAddress');
 var deserializeSubscription = require('./deserializeSubscription');
@@ -14,19 +14,16 @@ function deserializeSync(c, params, cache) {
 }
 
 function deserializeAddressInfo(c, params) {
-  return deserializeAddress(c, Object.assign(params.address, {
-    _parent: params
-  })).then(function (address) {
-    return { address: address };
-  });
+  return deserializeAddress(c, model(params.address, params))
+    .then(function (address) {
+      return { address: address };
+    });
 }
 
 function deserializeSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return deserializeSubscription(c, Object.assign(s, {
-      _parent: params      
-    }));
+    return deserializeSubscription(c, model(s, params));
   })).then(function (subscribers) {
     return { subscriptions: subscribers };     
   });

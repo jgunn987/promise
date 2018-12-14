@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var uuid = require('uuid');
+var model = require('./model');
 var parseResults = require('./parseResults');
 var defaultAddress = require('./defaultAddress');
 var defaultSubscription = require('./defaultSubscription');
@@ -21,21 +21,16 @@ function defaultFullName(c, params, cache) {
 }
 
 function defaultAddressInfo(c, params, cache) {
-  return defaultAddress(c, Object.assign({}, params.address || {}, {
-    _parent: params,
-    _id: uuid.v4()
-  })).then(function (address) {
-    return { address: address };
-  });
+  return defaultAddress(c, model(params.address || {}, params))
+    .then(function (address) {
+      return { address: address };
+    });
 }
 
 function defaultSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
-    return defaultSubscription(c, Object.assign({}, s, {
-      _parent: params,
-      _id: uuid.v4()
-    }));
+    return defaultSubscription(c, model(s, params));
   })).then(function (subscribers) {
     return { subscriptions: subscribers };     
   });
