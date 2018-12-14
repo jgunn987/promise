@@ -11,9 +11,13 @@ mongodb.MongoClient
       address: {
         firstLine: '9 Hadlow Road',
         secondLine: 'Tonbridge',
-        country: 'UK',
+        country: 'United Kingdom',
         postcode: 'TN91LE'
-      }
+      },
+      subscriptions: [{
+        user: 'Timothy',
+        events: ['email']
+      }, {}]
     });
   }).then(console.log)
     .catch(function (err) {

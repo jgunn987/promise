@@ -1,5 +1,7 @@
+var Promise = require('promise');
 var pzone = require('./../.');
 var defaultAddress = require('./defaultAddress');
+var defaultSubscription = require('./defaultSubscription');
 
 function defaultFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
@@ -29,12 +31,22 @@ function defaultAddressInfo(c, params, cache) {
     });
 }
 
+function defaultSubscribers(c, params, cache) {
+  var subscriptions = params.subscriptions || [];
+  return Promise.all(subscriptions.map(function (s) {
+    return defaultSubscription(c, s);
+  })).then(function (subscribers) {
+    return { subscriptions: subscribers };     
+  });
+}
+
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
     defaultFirstName,
     defaultLastName,
     defaultFullName,
     defaultEmail,
-    defaultAddressInfo
+    defaultAddressInfo,
+    defaultSubscribers
   ], cache);
 }

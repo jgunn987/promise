@@ -1,6 +1,7 @@
 var validateUser = require('./validateUser');
 var serializeUser = require('./serializeUser');
 var defaultUser = require('./defaultUser');
+var deserializeUser = require('./deserializeUser');
 
 module.exports = function (c, params) {
   return defaultUser(c, params).then(function(user) {
@@ -16,6 +17,8 @@ module.exports = function (c, params) {
         return c.db.collection('user').insertOne(serialized);  
       }).then(function (result) {
         return result.ops[0];  
+      }).then(function (data) {
+        return deserializeUser(c, data);
       });
   });
 };

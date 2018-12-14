@@ -1,5 +1,6 @@
 var pzone = require('./../.');
 var serializeAddress = require('./serializeAddress');
+var serializeSubscription = require('./serializeSubscription');
 
 function serializeFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
@@ -29,12 +30,29 @@ function serializeAddressInfo(c, params, cache) {
     });
 }
 
+function serializeSubscriptionInfo(c, params, cache) {
+  return serializeAddress(c, params.subscriptions || {})
+    .then(function (address) {
+      return { address: address };    
+    });
+}
+
+function serializeSubscribers(c, params, cache) {
+  var subscriptions = params.subscriptions || [];
+  return Promise.all(subscriptions.map(function (s) {
+    return serializeSubscription(c, s);
+  })).then(function (subscribers) {
+    return { subscriptions: subscribers };     
+  });
+}
+
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
     serializeFirstName,
     serializeLastName,
     serializeFullName,
     serializeEmail,
-    serializeAddressInfo
+    serializeAddressInfo,
+    serializeSubscribers
   ], cache);
 }
