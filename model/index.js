@@ -12,7 +12,9 @@ c.set('db',
       return client.db('promise-test');
     }));
 
-methods.createUser(c, {
+cc = c.extend();
+
+methods.createUser(cc, {
   firstName: 'Timothy',
   lastName: 'Goon',
   email: 'universal@gumbo.net',
@@ -29,7 +31,7 @@ methods.createUser(c, {
 }).then(function (_id) {
     //methods.getUser(c, { _id: _id }).then(console.log);
     //methods.getUsers(c, {}).then(console.log);
-    methods.hasUser(c, { _id: _id }).then(console.log);
+    methods.hasUser(cc, { _id: _id }).then(console.log);
   }).catch(function (err) {
     console.log(err);
     process.exit(0);

@@ -18,9 +18,10 @@ function validateSubscribers(c, params, cache) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
     return validateSubscription(c, model(s, params)).then(validObject);
-  })).then(function (subscribers) {
-    return { subscriptions: validArray(subscribers) };
-  });
+  })).then(validArray)
+     .then(function (subscribers) {
+       return { subscriptions: subscribers };
+     });
 }
 
 module.exports = function (c, params, cache) {

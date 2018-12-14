@@ -35,6 +35,12 @@ Container.prototype.del = function (k) {
   delete this.store[k];
 };
 
+Container.prototype.extend = function (c) {
+  var extended = new Container(c);
+  extended.store = Object.assign({}, this.store);    
+  return extended;
+}
+
 module.exports = function (c) {
   return new Container(c);
 };

@@ -41,7 +41,7 @@ function getUser(c, params) {
 
 function getUsers(c, params) {
   return c.get('db').then(function (db) {
-    return db.collection('user').find();
+    return db.collection('user').find(params, { password: 0  }).limit(10);
   }).then(function (cursor) {
     return cursor.toArray().then(function (users) {
       return Promise.all(users.map(function (u) {
