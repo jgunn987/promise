@@ -9,8 +9,9 @@ module.exports = function (c, params) {
         if(Object.keys(validation).length) {
           throw new Error(JSON.stringify(validation));
         }
+
       }).then(function () {
-        return serializeUser(c, params);    
+        return serializeUser(c, user);    
       }).then(function (serialized) {
         return c.db.collection('user').insertOne(serialized);  
       }).then(function (result) {

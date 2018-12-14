@@ -1,4 +1,5 @@
 var pzone = require('./../.');
+var defaultAddress = require('./defaultAddress');
 
 function defaultFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
@@ -21,11 +22,19 @@ function defaultEmail(c, params, cache) {
   return { email: params.email || 'jgunn987@gmail.com' };
 }
 
+function defaultAddressInfo(c, params, cache) {
+  return defaultAddress(c, params.address || {})
+    .then(function (address) {
+      return { address: address };
+    });
+}
+
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
     defaultFirstName,
     defaultLastName,
     defaultFullName,
-    defaultEmail
+    defaultEmail,
+    defaultAddressInfo
   ], cache);
 }

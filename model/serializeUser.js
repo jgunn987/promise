@@ -1,4 +1,5 @@
 var pzone = require('./../.');
+var serializeAddress = require('./serializeAddress');
 
 function serializeFirstName(c, params, cache) {
   return { firstName: params.firstName || 'James' };
@@ -21,11 +22,19 @@ function serializeEmail(c, params, cache) {
   return { email: params.email || 'jgunn987@gmail.com' };
 }
 
+function serializeAddressInfo(c, params, cache) {
+  return serializeAddress(c, params.address || {})
+    .then(function (address) {
+      return { address: address };    
+    });
+}
+
 module.exports = function (c, params, cache) {
   return pzone(c, params, [
     serializeFirstName,
     serializeLastName,
     serializeFullName,
-    serializeEmail
+    serializeEmail,
+    serializeAddressInfo
   ], cache);
 }
