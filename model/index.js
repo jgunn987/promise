@@ -1,17 +1,18 @@
 var mongodb = require('mongodb');
 var container = require('./container');
-var createUser = require('./createUser');
+var methods = require('./createUser');
 
-var c = container({});
+var c = container();
 
-c.set('*', 'db', 
+c.set('db', 
   mongodb.MongoClient
     .connect('mongodb://localhost:27017', { useNewUrlParser: true })
     .then(function (client) { 
+      c.set('dbConn', client);
       return client.db('promise-test');
     }));
 
-createUser(c, {
+methods.createUser(c, {
   firstName: 'Timothy',
   lastName: 'Goon',
   email: 'universal@gumbo.net',
@@ -25,7 +26,10 @@ createUser(c, {
     user: 'Timothy',
     events: ['email']
   }, {}]
-}).then(console.log)
-  .catch(function (err) {
-    console.log(err);  
+}).then(function (_id) {
+    methods.getUser(c, { _id: _id }).then(console.log);
+    methods.getUsers(c, {}).then(console.log);
+  }).catch(function (err) {
+    console.log(err);
+    process.exit(0);
   });

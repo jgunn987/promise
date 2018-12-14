@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var parseResults = require('./parseResults');
+var parseObjectKeys = require('./parseObjectKeys');
 var validCountries = [
  'United Kingdom',
  'Netherlands',
@@ -33,5 +33,5 @@ module.exports = function (c, params) {
     validateFirstLine(c, params),
     validateCountry(c, params),
     validatePostcode(c, params)
-  ]).then(parseResults);
+  ]).then(parseObjectKeys);
 }

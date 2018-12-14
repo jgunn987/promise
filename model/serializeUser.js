@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var parseResults = require('./parseResults');
+var parseObjectKeys = require('./parseObjectKeys');
 var serializeAddress = require('./serializeAddress');
 var serializeSubscription = require('./serializeSubscription');
 
@@ -33,5 +33,5 @@ module.exports = function (c, params, cache) {
     },
     serializeAddressInfo(c, params),
     serializeSubscribers(c, params)
-  ]).then(parseResults);
+  ]).then(parseObjectKeys);
 }

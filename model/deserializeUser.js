@@ -1,6 +1,6 @@
 var Promise = require('promise');
 var model = require('./model');
-var parseResults = require('./parseResults');
+var parseObjectKeys = require('./parseObjectKeys');
 var deserializeAddress = require('./deserializeAddress');
 var deserializeSubscription = require('./deserializeSubscription');
 
@@ -31,5 +31,5 @@ module.exports = function (c, params, cache) {
     },
     deserializeAddressInfo(c, params),
     deserializeSubscribers(c, params)
-  ]).then(parseResults);
+  ]).then(parseObjectKeys);
 };

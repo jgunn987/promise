@@ -1,6 +1,6 @@
 var Promise = require('promise');
 var isemail = require('isemail');
-var parseResults = require('./parseResults');
+var parseObjectKeys = require('./parseObjectKeys');
 var isEmpty = require('./isEmpty');
 var model = require('./model');
 var validateAddress = require('./validateAddress');
@@ -37,5 +37,5 @@ module.exports = function (c, params, cache) {
     },
     validateAddressInfo(c, params),
     validateSubscribers(c, params)
-  ]).then(parseResults);
+  ]).then(parseObjectKeys);
 }

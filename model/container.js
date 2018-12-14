@@ -1,36 +1,40 @@
 var Promise = require('promise');
 var EventEmitter = require('events');
 
-module.exports = function container(config) {
-  var timeout = config.timeout || 15000;
-  var events = new EventEmitter();
-  var store = {};
+function Container(c) {
+  c = c || {};
+  this.timeout = c.timeout || 15000;
+  this.events = new EventEmitter();
+  this.store = {};
+}
 
-  function set(bucket, k, v) {
-    store[bucket] = store[bucket] || {};
-    return store[bucket][k] = Promise.resolve(v).then(function (r) {
-      events.emit(bucket + '/' + k, r);    
-      return r;
-    });
-  }
+Container.prototype.set = function (k, v) {
+  var container = this;
+  return this.store[k] = Promise.resolve(v).then(function (r) {
+    container.events.emit(k, r);    
+    return r;
+  });
+};
 
-  function get(bucket, k) {
-    return new Promise(function (resolve, reject) {
-      if(bucket in store && k in store[bucket]) {
-        return store[bucket][k].then(resolve); 
-      }
+Container.prototype.get = function (k) {
+  var container = this;
+  return new Promise(function (resolve, reject) {
+    if(k in container.store) {
+      return container.store[k].then(resolve); 
+    }
 
-      var eventKey = bucket + '/' + k;
-      events.on(eventKey, resolve);
+    container.events.on(k, resolve);
 
-      setTimeout(function () {
-        reject(new Error(eventKey + ': Operation timeout exceeded'));    
-      }, timeout);
-    });
-  }
+    setTimeout(function () {
+      reject(new Error(k + ': Operation timeout exceeded'));    
+    }, container.timeout);
+  });
+};
 
-  return {
-    set: set,
-    get: get
-  };
+Container.prototype.del = function (k) {
+  delete this.store[k];
+};
+
+module.exports = function (c) {
+  return new Container(c);
 };

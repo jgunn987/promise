@@ -1,4 +1,4 @@
-function parseResults(results) {
+function parseObjectKeys(results) {
   return results.reduce(function (p, c) {
     return Object.keys(c).find(function (k) {
       return c[k];
@@ -6,4 +6,4 @@ function parseResults(results) {
   }, {});
 }
 
-module.exports = parseResults;
+module.exports = parseObjectKeys;
