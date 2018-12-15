@@ -11,7 +11,7 @@ function deserializeAddressInfo(c, params) {
     });
 }
 
-function deserializeSubscribers(c, params, cache) {
+function deserializeSubscribers(c, params) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
     return deserializeSubscription(c, model(s, params));
@@ -20,7 +20,7 @@ function deserializeSubscribers(c, params, cache) {
   });
 }
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.all([
     {
       _id: params._id,

@@ -1,7 +1,6 @@
 var mongodb = require('mongodb');
 var container = require('./container');
 var methods = require('./createUser');
-
 var c = container();
 
 c.set('db', 

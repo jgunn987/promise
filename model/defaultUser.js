@@ -4,14 +4,14 @@ var parseObjectKeys = require('./parseObjectKeys');
 var defaultAddress = require('./defaultAddress');
 var defaultSubscription = require('./defaultSubscription');
 
-function defaultAddressInfo(c, params, cache) {
+function defaultAddressInfo(c, params) {
   return defaultAddress(c, model(params.address || {}, params))
     .then(function (address) {
       return { address: address };
     });
 }
 
-function defaultSubscribers(c, params, cache) {
+function defaultSubscribers(c, params) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
     return defaultSubscription(c, model(s, params));
@@ -20,7 +20,7 @@ function defaultSubscribers(c, params, cache) {
   });
 }
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.all([
     {
       _id: params._id,

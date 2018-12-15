@@ -7,14 +7,14 @@ var model = require('./model');
 var validateAddress = require('./validateAddress');
 var validateSubscription = require('./validateSubscription');
 
-function validateAddressInfo(c, params, cache) {
+function validateAddressInfo(c, params) {
   return validateAddress(c, model(params.address, params))
     .then(function (result) {
       return { address: validObject(result) };
     });
 }
 
-function validateSubscribers(c, params, cache) {
+function validateSubscribers(c, params) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
     return validateSubscription(c, model(s, params)).then(validObject);
@@ -24,9 +24,10 @@ function validateSubscribers(c, params, cache) {
      });
 }
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.all([
     {
+      _id: params._id ? params._id.length === 36 ? undefined : 'Invalid Id' : undefined,
       firstName: params.firstName ? undefined : 'No first name',
       lastName: params.lastName ? undefined : 'No last name',
       email: isemail.validate(params.email) ? undefined: 'Invalid Email'

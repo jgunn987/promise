@@ -3,7 +3,7 @@ var parseObjectKeys = require('./parseObjectKeys');
 var serializeAddress = require('./serializeAddress');
 var serializeSubscription = require('./serializeSubscription');
 
-function serializeAddressInfo(c, params, cache) {
+function serializeAddressInfo(c, params) {
   return serializeAddress(c, Object.assign(params.address || {}, {
     _parent: params
   })).then(function (address) {
@@ -11,7 +11,7 @@ function serializeAddressInfo(c, params, cache) {
   });
 }
 
-function serializeSubscribers(c, params, cache) {
+function serializeSubscribers(c, params) {
   var subscriptions = params.subscriptions || [];
   return Promise.all(subscriptions.map(function (s) {
     return serializeSubscription(c, Object.assign(s, {
@@ -22,7 +22,7 @@ function serializeSubscribers(c, params, cache) {
   });
 }
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.all([
     {
       _id: params._id,

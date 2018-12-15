@@ -1,6 +1,6 @@
 var Promise = require('promise');
 
-module.exports = function (c, params, cache) {
+module.exports = function (c, params) {
   return Promise.resolve({
     _id: params._id,
     user: params.user,
