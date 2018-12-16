@@ -1,6 +1,6 @@
 var Promise = require('promise');
 var model = require('./model');
-var parseObjectKeys = require('./parseObjectKeys');
+var parseKeys = require('./parseKeys');
 var defaultAddress = require('./defaultAddress');
 var defaultSubscription = require('./defaultSubscription');
 
@@ -31,5 +31,5 @@ module.exports = function (c, params) {
     },
     defaultAddressInfo(c, params),
     defaultSubscribers(c, params)
-  ]).then(parseObjectKeys)
+  ]).then(parseKeys)
 }

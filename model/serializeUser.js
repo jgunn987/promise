@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var parseObjectKeys = require('./parseObjectKeys');
+var parseKeys = require('./parseKeys');
 var serializeAddress = require('./serializeAddress');
 var serializeSubscription = require('./serializeSubscription');
 
@@ -23,15 +23,13 @@ function serializeSubscribers(c, params) {
 }
 
 module.exports = function (c, params) {
-  return Promise.all([
-    {
-      _id: params._id,
-      firstName: params.firstName || 'James',
-      lastName: params.lastName || 'Gunn',
-      email: params.email || 'jgunn987@gmail.com',
-      fullName: params.firstName + params.lastName
-    },
-    serializeAddressInfo(c, params),
-    serializeSubscribers(c, params)
-  ]).then(parseObjectKeys);
+  return Promise.all([{
+    _id: params._id,
+    firstName: params.firstName || 'James',
+    lastName: params.lastName || 'Gunn',
+    email: params.email || 'jgunn987@gmail.com',
+    fullName: params.firstName + params.lastName
+  }, serializeAddressInfo(c, params),
+     serializeSubscribers(c, params)
+  ]).then(parseKeys);
 }

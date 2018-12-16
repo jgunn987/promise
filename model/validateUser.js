@@ -1,6 +1,6 @@
 var Promise = require('promise');
 var isemail = require('isemail');
-var parseObjectKeys = require('./parseObjectKeys');
+var parseKeys = require('./parseKeys');
 var validObject = require('./validObject');
 var validArray = require('./validArray');
 var model = require('./model');
@@ -34,5 +34,5 @@ module.exports = function (c, params) {
     },
     validateAddressInfo(c, params),
     validateSubscribers(c, params)
-  ]).then(parseObjectKeys);
+  ]).then(parseKeys);
 }

@@ -1,6 +1,6 @@
 var Promise = require('promise');
 var model = require('./model');
-var parseObjectKeys = require('./parseObjectKeys');
+var parseKeys = require('./parseKeys');
 var deserializeAddress = require('./deserializeAddress');
 var deserializeSubscription = require('./deserializeSubscription');
 
@@ -21,15 +21,13 @@ function deserializeSubscribers(c, params) {
 }
 
 module.exports = function (c, params) {
-  return Promise.all([
-    {
-      _id: params._id,
-      firstName: params.firstName,
-      lastName: params.lastName,
-      fullName: params.fullName,
-      email: params.email
-    },
-    deserializeAddressInfo(c, params),
+  return Promise.all([{
+    _id: params._id,
+    firstName: params.firstName,
+    lastName: params.lastName,
+    fullName: params.fullName,
+    email: params.email
+  },deserializeAddressInfo(c, params),
     deserializeSubscribers(c, params)
-  ]).then(parseObjectKeys);
+  ]).then(parseKeys);
 };
